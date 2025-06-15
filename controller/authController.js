@@ -74,3 +74,59 @@ exports.AddProduct = async (req, res) => {
     res.status(500).json({ error: "Error adding product" });
   }
 };
+
+exports.getProductDetails = async (req, res) => {
+  try {
+    const products = await Product.find(); 
+    res.status(200).json({ success: true, products });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error fetching products", error });
+  }
+};
+
+exports.EditProduct = async (req, res) => {
+  try {
+    const { name, desc } = req.body;
+    const { id } = req.params;
+
+    const product = await Product.findById(id);
+    if (!product) return res.status(404).json({ error: "Product not found" });
+
+    // Update text fields
+    product.name = name;
+    product.desc = desc;
+
+    // Handle image upload if a new one is provided
+    if (req.file) {
+      // Upload new image
+      const result = await cloudinary.uploader.upload(req.file.path);
+      product.image = result.secure_url;
+
+      // Remove local temp file
+      fs.unlinkSync(req.file.path);
+    }
+
+    await product.save();
+
+    res.status(200).json({ message: "Product updated", product });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error updating product" });
+  }
+};
+
+exports.DeleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await Product.findById(id);
+    if (!product) return res.status(404).json({ error: "Product not found" });
+
+    await Product.findByIdAndDelete(id);
+
+    res.status(200).json({ message: "Product deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error deleting product" });
+  }
+};
