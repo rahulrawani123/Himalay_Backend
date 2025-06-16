@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { signup, login, AddProduct, getProductDetails, EditProduct, DeleteProduct } = require("../controller/authController");
-const upload = require("../middleware/upload");
+const upload = require("../middleware/Upload");
 
 router.post("/api/signup", signup);
 router.post("/api/login", login);
