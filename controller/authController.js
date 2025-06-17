@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const Product = require("../models/Product");
+const Enquiry = require("../models/Enquiry");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -47,26 +48,18 @@ exports.login = async (req, res) => {
 
 exports.AddProduct = async (req, res) => {
   try {
-    console.log("📥 Incoming product add request...");
 
-    // Log full request body and file (for debugging)
-    console.log("Request body:", req.body);
-    console.log("Request file:", req.file);
-
-    const { name, desc } = req.body;
+    const { name, desc, category } = req.body;
 
     // Check if image was uploaded
     if (!req.file || !req.file.path) {
-      console.error("❌ Image file not uploaded");
       return res.status(400).json({ error: "Image is required" });
     }
 
     const image = req.file.path;
 
-    const newProduct = new Product({ name, desc, image });
+    const newProduct = new Product({ name, desc, image, category });
     await newProduct.save();
-
-    console.log("✅ New product saved:", newProduct);
 
     res.status(201).json({ message: "Product added", product: newProduct });
   } catch (error) {
@@ -86,7 +79,7 @@ exports.getProductDetails = async (req, res) => {
 
 exports.EditProduct = async (req, res) => {
   try {
-    const { name, desc } = req.body;
+    const { name, desc, category } = req.body;
     const { id } = req.params;
 
     const product = await Product.findById(id);
@@ -95,6 +88,7 @@ exports.EditProduct = async (req, res) => {
     // Update text fields
     product.name = name;
     product.desc = desc;
+    product.category = category;
 
     // Handle image upload if a new one is provided
     if (req.file) {
@@ -128,5 +122,15 @@ exports.DeleteProduct = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error deleting product" });
+  }
+};
+
+exports.StoreEnquiries = async (req, res) => {
+  try {
+    const enquiry = new Enquiry(req.body);
+    await enquiry.save();
+    res.status(201).json({ success: true, message: "Enquiry submitted!" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Submission failed", error });
   }
 };
