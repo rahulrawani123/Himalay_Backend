@@ -134,3 +134,12 @@ exports.StoreEnquiries = async (req, res) => {
     res.status(500).json({ success: false, message: "Submission failed", error });
   }
 };
+
+exports.getAllEnquiries = async (req, res) => {
+  try {
+    const enquiries = await Enquiry.find().sort({ createdAt: -1 });
+    res.status(200).json(enquiries);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching enquiries", error });
+  }
+};
