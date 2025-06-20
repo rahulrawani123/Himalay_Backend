@@ -143,3 +143,12 @@ exports.getAllEnquiries = async (req, res) => {
     res.status(500).json({ message: "Error fetching enquiries", error });
   }
 };
+
+exports.getProductDetail = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    res.status(200).json({ success: true, product });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error fetching product", error });
+  }
+};
