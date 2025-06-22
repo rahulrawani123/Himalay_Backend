@@ -1,8 +1,10 @@
 const User = require("../models/User");
 const Product = require("../models/Product");
 const Enquiry = require("../models/Enquiry");
+const Blog = require("../models/Blog");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const cloudinary = require("../config/cloudinaryConfig");
 
 const JWT_SECRET = "123456123";
 
@@ -152,3 +154,83 @@ exports.getProductDetail = async (req, res) => {
     res.status(500).json({ success: false, message: "Error fetching product", error });
   }
 };
+
+exports.postBlogData = async (req, res) => {
+  try {
+    const {
+      title,
+      writer,
+      writerPosition,
+      date,
+      description1,
+      description2Title,
+      description2,
+      description3Title,
+      description3,
+      description4Title,
+      description4,
+      description5Title,
+      description5,
+    } = req.body;
+
+    // Upload images to Cloudinary and get secure_url
+    const writerPhotoResult = req.files.writerPhoto
+      ? await cloudinary.uploader.upload(req.files.writerPhoto[0].path, {
+          folder: "Himalay_Blogs",
+        })
+      : null;
+
+    const mainPhotoResult = req.files.photo
+      ? await cloudinary.uploader.upload(req.files.photo[0].path, {
+          folder: "Himalay_Blogs",
+        })
+      : null;
+
+    const desc2ImageResult = req.files.description2Image
+      ? await cloudinary.uploader.upload(req.files.description2Image[0].path, {
+          folder: "Himalay_Blogs",
+        })
+      : null;
+
+    // Save blog to MongoDB
+    const newBlog = new Blog({
+      title,
+      writer,
+      writerPosition,
+      writerPhoto: writerPhotoResult?.secure_url || "",
+      date,
+      photo: mainPhotoResult?.secure_url || "",
+      description1,
+      description2Title,
+      description2Image: desc2ImageResult?.secure_url || "",
+      description2,
+      description3Title,
+      description3,
+      description4Title,
+      description4,
+      description5Title,
+      description5,
+    });
+
+    await newBlog.save();
+
+    res.status(201).json({
+      message: "✅ Blog created successfully!",
+      blog: newBlog,
+    });
+  } catch (error) {
+    console.error("❌ Error in postBlogData:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.getBlogData = async (req, res) => {
+  try {
+    const blogs = await Blog.find().sort({ date: -1 });
+    res.status(200).json(blogs);
+  } catch (err) {
+    console.error("Error fetching blogs:", err);
+    res.status(500).json({ message: "Error fetching blogs" });
+  }
+};
+
